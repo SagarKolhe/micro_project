@@ -11,7 +11,9 @@ pipeline {
             }
 
             // Jenkins Stage to Build the Docker Image
-            docker build -t test:$BUILD_NUMBER -f ./Dockerfile
+            script {
+            docker.build registry + ":$BUILD_NUMBER"
+            }
         }
 
         stage('Publish Image') {
