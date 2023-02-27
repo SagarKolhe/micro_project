@@ -8,12 +8,12 @@ pipeline {
         stage('Build Image') {
             when {
                 branch 'master'  //only run these steps on the master branch
+                script {
+                docker.build registry + ":$BUILD_NUMBER"
+            }
             }
 
             // Jenkins Stage to Build the Docker Image
-            script {
-            docker.build registry + ":$BUILD_NUMBER"
-            }
         }
 
         stage('Publish Image') {
