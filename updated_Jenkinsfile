@@ -1,0 +1,52 @@
+pipeline{
+    agent any
+    
+    environment{
+        dockerImage = ''
+        registry = '16081998/myapp'
+        registryCredential = 'dockerhub_id'
+    }
+    
+    stages{
+        stage('checkout'){
+            steps{
+                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/SagarKolhe/micro_project']])
+            }
+        }
+        
+        stage('build'){
+            steps{
+                script{
+                    dockerImage = docker.build registry
+                }
+            }
+        }
+        
+        stage('Docker push'){
+            steps{
+                script{
+                    docker.withRegistry( '', registryCredential ) {
+                    dockerImage.push()
+                    }
+                }
+            }            
+        }
+        
+    // Stopping Docker containers for cleaner Docker run
+    stage('docker stop container') {
+         steps {
+            sh 'docker ps -f name=myappContainer -q | xargs --no-run-if-empty docker container stop'
+            sh 'docker container ls -a -fname=myappContainer -q | xargs -r docker container rm'
+         }
+       }
+       
+    // Running Docker container, make sure port 8096 is opened in 
+    stage('Docker Run') {
+     steps{
+         script {
+            dockerImage.run("-p 80:80 --rm --name myappContainer")
+         }
+      }
+    }
+    }
+}
